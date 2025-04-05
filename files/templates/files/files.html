@@ -1,1 +1,14 @@
-{{ files }}
+{% extends "files/site.html" %}
+{% block title %} View all files {% endblock %}
+{% block body %}
+{% if files %}
+<ul>
+    {% for file in files %}
+    <li><a href="{% url 'file' file.id %}">{{file.name}}</a></li>
+    <!-- <li><a href="/file/{{file.id}}">{{file.name}}</a></li> -->
+    {% endfor %}
+</ul>
+{% else %}
+<p> Upload some files!</p>
+{% endif %}
+{% endblock %}
