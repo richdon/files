@@ -1,5 +1,7 @@
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, redirect
+
+from .forms import UploadForm
 from .models import File
 
 
@@ -16,7 +18,7 @@ def home(request):
 
 def files(request):
     data = File.objects.all()
-    return render(request, "files/files.html", {"files": data})
+    return render(request, "files/files.html", {"files": data, "form": UploadForm})
 
 
 def file(request, file_id):
@@ -25,6 +27,13 @@ def file(request, file_id):
     if hasattr(f, 'status_code'):
         return f
     return render(request, "files/file.html", {"file": f})  # Changed "files" to "file"
+
+
+def upload(request):
+    form = UploadForm(request.POST, request.FILES)
+    if form.is_valid():
+        form.save()
+    return redirect("files")
 
 
 def edit(request, file_id):
