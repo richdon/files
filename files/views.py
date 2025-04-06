@@ -1,35 +1,51 @@
 from django.http import HttpResponse, Http404
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from .models import File
+
+
+def _get_file(file_id):
+    try:
+        return File.objects.get(pk=file_id)
+    except File.DoesNotExist:
+        return redirect("files")
 
 
 def home(request):
     return HttpResponse("Hello there")
 
 
-data = [
-    {
-        "id": 0,
-        "name": "image1.jpeg",
-        "type": "jpeg"
-    },
-    {
-        "id": 1,
-        "name": "notes.txt",
-        "type": "txt"
-    },
-    {
-        "id": 2,
-        "name": "image2.jpeg",
-        "type": "jpeg"
-    }
-]
-
-
 def files(request):
+    data = File.objects.all()
     return render(request, "files/files.html", {"files": data})
 
 
 def file(request, file_id):
-    if not (f := next((item for item in data if item["id"] == file_id), None)):
-        raise Http404("file does not exist")
-    return render(request, "files/file.html", {"files": f})
+    f = _get_file(file_id)
+    # If _get_file returned a redirect
+    if hasattr(f, 'status_code'):
+        return f
+    return render(request, "files/file.html", {"file": f})  # Changed "files" to "file"
+
+
+def edit(request, file_id):
+    f = _get_file(file_id)
+    # If _get_file returned a redirect
+    if hasattr(f, 'status_code'):
+        return f
+
+    if name := request.POST.get("name"):
+        f.name = name
+    if file_type := request.POST.get("file_type"):
+        f.file_type = file_type
+    f.save()
+    return redirect("files")  # Added return and changed to URL name
+
+
+def delete(request, file_id):
+    f = _get_file(file_id)
+    # If _get_file returned a redirect
+    if hasattr(f, 'status_code'):
+        return f
+
+    f.delete()
+    return redirect("files")  # Added return and changed to URL name
